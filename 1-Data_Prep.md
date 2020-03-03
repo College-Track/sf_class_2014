@@ -17,9 +17,9 @@ jupyter:
 A project to determine what, if anything influenced the graduation success of the San Francisco class of 2014.
 
 ### Data Sources
-- file1 : https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxDwUAK/view
-- file2:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxHKUA0/view
-- file3:  Link to SF Report (As Needed)
+- Student Data : https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxDwUAK/view
+- Scholarship Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxHKUA0/view
+- Test Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007R0eMUAS/view
 
 ### Changes
 - 02-06-2020 : Started project
@@ -51,7 +51,7 @@ sf = Connection(username=SF_USERNAME, password=SF_PASS, security_token=SF_TOKEN)
 today = datetime.today()
 in_file1 = Path.cwd() / "data" / "raw" / "sf_output_file1.csv"
 in_file2 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
-# in_file3 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
+in_file3 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
 
 summary_file = Path.cwd() / "data" / "processed" / "processed_data.pkl"
 
@@ -62,30 +62,36 @@ summary_file2 = Path.cwd() / "data" / "processed" / "processed_data_file2.pkl"
 
 ```python
 # File 1
-report_id_file1 = "00O1M000007QxDwUAK"
-sf_df = helpers.load_report(report_id_file1, sf)
+# report_id_file1 = "00O1M000007QxDwUAK"
+# sf_df = helpers.load_report(report_id_file1, sf)
 
-# File 2 and 3 (As needed)
-report_id_file2 = "00O1M000007QxHKUA0"
-# report_id_file3 = "SF_REPORT_ID"
-sf_df_file2 = helpers.load_report(report_id_file2, sf)
-# sf_df = helpers.load_report(report_id_file3, sf)
+
+# File 2
+# report_id_file2 = "00O1M000007QxHKUA0"
+# sf_df_file2 = helpers.load_report(report_id_file2, sf)
+
+
+# File 3
+report_id_file3 = "00O1M000007R0eMUAS"
+sf_df = helpers.load_report(report_id_file3, sf)
 ```
 
 ```python
-len(sf_df), len(sf_df_file2)
+# len(sf_df)
 ```
 
 #### Save report as CSV
 
 ```python
 # File 1
-sf_df.to_csv(in_file1, index=False)
+# sf_df.to_csv(in_file1, index=False)
 
 
-# File 2 and 3 (As needed)
-sf_df_file2.to_csv(in_file2, index=False)
-# sf_df.to_csv(in_file3, index=False)
+# File 2
+# sf_df_file2.to_csv(in_file2, index=False)
+
+# File 3 
+sf_df.to_csv(in_file3, index=False)
 
 ```
 
@@ -93,17 +99,34 @@ sf_df_file2.to_csv(in_file2, index=False)
 * Start here if CSV already exist 
 
 ```python
-# Data Frame for File 1 - if using more than one file, rename df to df_file1
+# Data Frame for File 1 - if using more than 1 df, the variable 'df' will refer to file 1
 df = pd.read_csv(in_file1)
 
 
-# Data Frames for File 1 and 2 (As needed)
-
+# Data Frames for File 2
 df_file2 = pd.read_csv(in_file2)
-# df_file3 = pd.read_csv(in_file3)
+
+# File 3
+df_file3 = pd.read_csv(in_file3)
 ```
 
 ### Data Manipulation
+
+```python
+def create_gpa_bucket(gpa):
+    if gpa < 2.5:
+        return "2.5 or less"
+    elif gpa < 2.75:
+        return "2.5 - 2.74"
+    elif gpa < 3.0:
+        return "2.75 - 2.9"
+    elif gpa < 3.5:
+        return "3.0 - 3.49"
+    elif gpa >= 3.5:
+        return "3.5 or greater"
+    else:
+        return "NULL"
+```
 
 ```python
 def clean_column_names(df):
@@ -114,6 +137,12 @@ def clean_column_names(df):
         .str.replace(" ", "_")
         .str.replace("(", "")
         .str.replace(")", "")
+        .str.replace("-", "_")
+        .str.replace(":", "")
+        .str.replace("<", "less_")
+        .str.replace("=", "")
+        .str.replace(".", "")
+        
     )
     
     return df
@@ -121,10 +150,32 @@ def clean_column_names(df):
 ```
 
 ```python
+# File 1
 df = helpers.shorten_site_names(df)
-df_file2 = helpers.shorten_site_names(df_file2)
 df = clean_column_names(df)
+
+# File 2
+df_file2 = helpers.shorten_site_names(df_file2)
 df_file2 = clean_column_names(df_file2)
+
+
+# File 3
+df_file3 = helpers.shorten_site_names(df_file3)
+df_file3 = clean_column_names(df_file3)
+```
+
+```python
+df["gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x.college_elig_gpa_11th_cgpa), axis=1
+)
+```
+
+```python
+df.graduated_4_year_degree_less_4_years
+```
+
+```python
+df_file3
 ```
 
 ### Save output file into processed directory
