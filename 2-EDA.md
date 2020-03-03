@@ -45,21 +45,22 @@ report_file = report_dir / "Excel_Analysis_{today:%b-%d-%Y}.xlsx"
 
 in_file2 = Path.cwd() / "data" / "processed" / "processed_data_file2.pkl"
 
+in_file3 = Path.cwd() / "data" / "processed" / "processed_data_file3.pkl"
+
 ```
 
 ```python
 df = pd.read_pickle(in_file)
+
 df2 = pd.read_pickle(in_file2)
+
+df3 = pd.read_pickle(in_file3)
 ```
 
 ### Perform Data Analysis
 
 ```python
-len(df)
-```
-
-```python
-# comparing graduation rates across high school classes
+# len(df3)
 ```
 
 ####  General Distrobutions
@@ -133,6 +134,33 @@ sf_cross_tab(df, "#_entrance_into_ct_diagnostic")
 
 ```python
 sf_cross_tab(df, "#_four_year_college_acceptances", normalize=False)
+```
+
+```python
+grade_order = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"]
+```
+
+```python
+pd.crosstab(
+    [
+        df3[df3.site == "San Francisco"].high_school_class,
+        df3[df3.site == "San Francisco"].hs_grade_level,
+    ],
+    df3[df3.site == "San Francisco"]["act_math_readiness"],
+    normalize="index",
+).reindex(index=grade_order, level=1)
+```
+
+```python
+entrace_scores = df3[df3.version == "Entrance into CT Diagnostic"]
+```
+
+```python
+sf_cross_tab(entrace_scores, "act_math_readiness")
+```
+
+```python
+sf_cross_tab(entrace_scores, "act_english_readiness")
 ```
 
 ### Save Excel file into reports directory
