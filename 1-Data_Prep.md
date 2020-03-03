@@ -56,6 +56,8 @@ in_file3 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
 summary_file = Path.cwd() / "data" / "processed" / "processed_data.pkl"
 
 summary_file2 = Path.cwd() / "data" / "processed" / "processed_data_file2.pkl"
+
+summary_file3 = Path.cwd() / "data" / "processed" / "processed_data_file3.pkl"
 ```
 
 ### Load Report From Salesforce
@@ -178,6 +180,22 @@ df.graduated_4_year_degree_less_4_years
 df_file3
 ```
 
+```python
+entrance_scores =df_file3[
+    (df_file3.site == "San Francisco")
+    & (df_file3.version == "Entrance into CT Diagnostic")
+]
+
+```
+
+```python
+pd.crosstab(
+    entrance_scores[entrance_scores.site == "San Francisco"].high_school_class,
+    entrance_scores[entrance_scores.site == "San Francisco"]["act_math_readiness"],
+    normalize=False,
+)
+```
+
 ### Save output file into processed directory
 
 Save a file in the processed directory that is cleaned properly. It will be read in and used later for further analysis.
@@ -185,5 +203,12 @@ Save a file in the processed directory that is cleaned properly. It will be read
 ```python
 # Save File 1 Data Frame (Or master df)
 df.to_pickle(summary_file)
+
 df_file2.to_pickle(summary_file2)
+
+df_file3.to_pickle(summary_file3)
+```
+
+```python
+
 ```
