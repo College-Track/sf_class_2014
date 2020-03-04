@@ -28,6 +28,9 @@ This notebook contains basic statistical analysis and visualization of the data.
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
+import statsmodels.api as sm
+import numpy as np
+
 ```
 
 ```python
@@ -75,12 +78,54 @@ def sf_cross_tab(df, column, normalize="index"):
         df[df.site == "San Francisco"].high_school_class,
         df[df.site == "San Francisco"][column],
         normalize=normalize,
+        margins=True,
     )
 ```
 
 ```python
+sf_cross_tab(df, "graduated_4_year_degree_less_6_years", normalize=False)
+```
+
+```python
 # Grad Rate Less than 6 years
-sf_cross_tab(df, "graduated_4_year_degree_less_6_years")
+sf_cross_tab(df, "graduated_4_year_degree_less_5_years")
+
+```
+
+```python
+population1 = (
+    df[(df.site == "San Francisco") & (df.high_school_class == 2013)][
+        "graduated_4_year_degree_less_5_years"
+    ]
+).values
+
+
+population2 = (
+    df[(df.site == "San Francisco") & (df.high_school_class == 2014)][
+        "graduated_4_year_degree_less_5_years"
+    ]
+).values
+```
+
+```python
+# p value of independent t-test on populations above
+sm.stats.ttest_ind(population1, population2)[1]
+
+```
+
+```python
+# table_1.iloc[3]["All"]
+```
+
+```python
+# n1 = table_1.iloc[0]['All']
+# p1 = table_2.iloc[0][True]
+
+# n2 = table_1.iloc[3]["All"]
+# p2 = table_2.iloc[3][True]
+
+# population1 = np.random.binomial(1, p1, n1)
+# population2 = np.random.binomial(1, p2, n2)
 
 ```
 
@@ -114,10 +159,6 @@ sf_cross_tab(df, "readiness_composite_official")
 
 ```python
 sf_cross_tab(df, "cc_advisor_4_year_degree_earned")
-```
-
-```python
-sf_cross_tab(df, "act_superscore_highest_official")
 ```
 
 ```python
