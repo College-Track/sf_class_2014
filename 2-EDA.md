@@ -12,7 +12,7 @@ jupyter:
     name: python3
 ---
 
-## sf_class_2014
+## OP Learning Agenda: SF Class of 2014
 
 A project to determine what, if anything influenced the graduation success of the San Francisco class of 2014.
 
@@ -30,7 +30,6 @@ from pathlib import Path
 from datetime import datetime
 import statsmodels.api as sm
 import numpy as np
-
 ```
 
 ```python
@@ -62,15 +61,12 @@ df3 = pd.read_pickle(in_file3)
 
 ### Perform Data Analysis
 
-```python
-# len(df3)
-```
 
 ####  General Distrobutions
 
-```python
-df.columns
-```
+SF Class of 2014 is on track to have the highest 6 year grad rate, with almost 70% of students already graduating, but that number isn't significantly higher than the class of 2013. Though we do see a reasonably big jump from 2012 to 2013. 
+
+The first table represents the percentages, while the second is the raw numbers.
 
 ```python
 def sf_cross_tab(df, column, normalize="index"):
@@ -83,14 +79,28 @@ def sf_cross_tab(df, column, normalize="index"):
 ```
 
 ```python
-sf_cross_tab(df, "graduated_4_year_degree_less_6_years", normalize=False)
+# Grad Rate Less than 6 years
+sf_cross_tab(df, "graduated_4_year_degree_less_6_years")
+
 ```
 
 ```python
-# Grad Rate Less than 6 years
+sf_cross_tab(df, "graduated_4_year_degree_less_6_years", normalize=False)
+
+```
+
+We can also look at the 5 year grad rate, which is more accurate as all the data is turned in for this.
+
+However, it tells almost the same story.
+
+```python
 sf_cross_tab(df, "graduated_4_year_degree_less_5_years")
 
 ```
+
+If we run independent t-test on the grad rates, we see that in fact comparing 2014 to 2013, and even to 2012, results in statistically insignificant differences. 
+
+The values displayed are the p values for first the 2014 -> 2013 comparison, and then  2014 -> 2012.
 
 ```python
 population1 = (
@@ -110,6 +120,55 @@ population2 = (
 ```python
 # p value of independent t-test on populations above
 sm.stats.ttest_ind(population1, population2)[1]
+
+```
+
+```python
+population1 = (
+    df[(df.site == "San Francisco") & (df.high_school_class == 2012)][
+        "graduated_4_year_degree_less_5_years"
+    ]
+).values
+
+
+population2 = (
+    df[(df.site == "San Francisco") & (df.high_school_class == 2014)][
+        "graduated_4_year_degree_less_5_years"
+    ]
+).values
+```
+
+```python
+# p value of independent t-test on populations above
+sm.stats.ttest_ind(population1, population2)[1]
+
+```
+
+```python
+df_sub = df[df.site == "San Francisco"]
+```
+
+```python
+y = df_sub["graduated_4_year_degree_less_6_years"]
+```
+
+```python
+X = df_sub["college_elig_gpa_11th_cgpa"]
+X = sm.add_constant(X)
+```
+
+```python
+import matplotlib.pyplot as plt
+
+# Note the difference in argument order
+model = sm.OLS(y.astype(float), X.astype(float)).fit()
+predictions = model.predict(X)  # make the predictions by the model
+
+# Print out the statistics
+# model.summary()
+
+fig, ax = plt.subplots()
+fig = sm.graphics.plot_fit(model, 0, ax=ax)
 
 ```
 
