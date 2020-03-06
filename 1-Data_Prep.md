@@ -26,6 +26,7 @@ A project to determine what, if anything influenced the graduation success of th
 
 ```python
 # General Setup
+# ALWAYS RUN
 %load_ext dotenv
 %dotenv
 %load_ext nb_black
@@ -48,6 +49,7 @@ sf = Connection(username=SF_USERNAME, password=SF_PASS, security_token=SF_TOKEN)
 ### File Locations
 
 ```python
+# ALWAYS RUN
 today = datetime.today()
 in_file1 = Path.cwd() / "data" / "raw" / "sf_output_file1.csv"
 in_file2 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
@@ -101,6 +103,7 @@ sf_df.to_csv(in_file3, index=False)
 * Start here if CSV already exist 
 
 ```python
+# ALWAYS RUN
 # Data Frame for File 1 - if using more than 1 df, the variable 'df' will refer to file 1
 df = pd.read_csv(in_file1)
 
@@ -173,14 +176,6 @@ df["gpa_bucket"] = df.apply(
 ```
 
 ```python
-df.graduated_4_year_degree_less_4_years
-```
-
-```python
-df_file3
-```
-
-```python
 entrance_scores =df_file3[
     (df_file3.site == "San Francisco")
     & (df_file3.version == "Entrance into CT Diagnostic")
@@ -189,11 +184,27 @@ entrance_scores =df_file3[
 ```
 
 ```python
-pd.crosstab(
-    entrance_scores[entrance_scores.site == "San Francisco"].high_school_class,
-    entrance_scores[entrance_scores.site == "San Francisco"]["act_math_readiness"],
-    normalize=False,
-)
+entrace_scores = df_file3[df_file3.version == "Entrance into CT Diagnostic"]
+```
+
+```python
+entrace_scores.columns
+```
+
+```python
+entrance_merge = entrace_scores[
+    [
+        "18_digit_id",
+        "act_english",
+        "act_mathematics",
+        "act_english_readiness",
+        "act_math_readiness",
+    ]
+]
+```
+
+```python
+df = df.merge(entrance_merge, on="18_digit_id", how="left")
 ```
 
 ### Save output file into processed directory
