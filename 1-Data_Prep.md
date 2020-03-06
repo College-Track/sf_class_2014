@@ -39,6 +39,9 @@ from pathlib import Path
 from datetime import datetime
 import helpers
 import os
+import re
+import numpy as np
+
 
 SF_PASS = os.environ.get("SF_PASS")
 SF_TOKEN = os.environ.get("SF_TOKEN")
@@ -52,15 +55,21 @@ sf = Connection(username=SF_USERNAME, password=SF_PASS, security_token=SF_TOKEN)
 ```python
 # ALWAYS RUN
 today = datetime.today()
+
+
 in_file1 = Path.cwd() / "data" / "raw" / "sf_output_file1.csv"
-in_file2 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
-in_file3 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
-in_file4 = Path.cwd() / "data" / "raw" / "sf_output_file4.csv"
-
-
 summary_file = Path.cwd() / "data" / "processed" / "processed_data.pkl"
+
+
+in_file2 = Path.cwd() / "data" / "raw" / "sf_output_file2.csv"
 summary_file2 = Path.cwd() / "data" / "processed" / "processed_data_file2.pkl"
+
+
+in_file3 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
 summary_file3 = Path.cwd() / "data" / "processed" / "processed_data_file3.pkl"
+
+
+in_file4 = Path.cwd() / "data" / "raw" / "sf_output_file4.csv"
 summary_file4 = Path.cwd() / "data" / "processed" / "processed_data_file4.pkl"
 ```
 
@@ -68,18 +77,18 @@ summary_file4 = Path.cwd() / "data" / "processed" / "processed_data_file4.pkl"
 
 ```python
 # File 1
-# report_id_file1 = "00O1M000007QxDwUAK"
-# sf_df = helpers.load_report(report_id_file1, sf)
+report_id_file1 = "00O1M000007QxDwUAK"
+sf_df = helpers.load_report(report_id_file1, sf)
 
 
 # File 2
-# report_id_file2 = "00O1M000007QxHKUA0"
-# sf_df_file2 = helpers.load_report(report_id_file2, sf)
+report_id_file2 = "00O1M000007QxHKUA0"
+sf_df_file2 = helpers.load_report(report_id_file2, sf)
 
 
 # File 3
-# report_id_file3 = "00O1M000007R0eMUAS"
-# sf_df_file3 = helpers.load_report(report_id_file3, sf)
+report_id_file3 = "00O1M000007R0eMUAS"
+sf_df_file3 = helpers.load_report(report_id_file3, sf)
 
 # File 4
 report_id_file4 = "00O1M000007R0JJUA0"
@@ -89,21 +98,20 @@ sf_df_file4 = helpers.load_report(report_id_file4, sf)
 ```
 
 ```python
-len(sf_df_file4)
+# len(sf_df_file4)
 ```
 
 #### Save report as CSV
 
 ```python
 # File 1
-# sf_df.to_csv(in_file1, index=False)
-
+sf_df.to_csv(in_file1, index=False)
 
 # File 2
-# sf_df_file2.to_csv(in_file2, index=False)
+sf_df_file2.to_csv(in_file2, index=False)
 
 # File 3
-# sf_df_file3.to_csv(in_file3, index=False)
+sf_df_file3.to_csv(in_file3, index=False)
 
 # File 4
 sf_df_file4.to_csv(in_file4, index=False)
@@ -116,7 +124,6 @@ sf_df_file4.to_csv(in_file4, index=False)
 # ALWAYS RUN
 # Data Frame for File 1 - if using more than 1 df, the variable 'df' will refer to file 1
 df = pd.read_csv(in_file1)
-
 
 # Data Frames for File 2
 df_file2 = pd.read_csv(in_file2)
@@ -191,10 +198,6 @@ df_file4 = helpers.shorten_site_names(df_file4)
 df_file4 = clean_column_names(df_file4)
 ```
 
-```python
-df_file4
-```
-
 #### File 1 Specific
 
 ```python
@@ -218,10 +221,6 @@ entrace_scores = df_file3[df_file3.version == "Entrance into CT Diagnostic"]
 ```
 
 ```python
-entrace_scores.columns
-```
-
-```python
 entrance_merge = entrace_scores[
     [
         "18_digit_id",
@@ -237,6 +236,46 @@ entrance_merge = entrace_scores[
 df = df.merge(entrance_merge, on="18_digit_id", how="left")
 ```
 
+```python
+students_with_dup_ats = df_file4[
+    df_file4.duplicated(subset=["18_digit_id", "global_academic_term"], keep=False)
+]
+```
+
+```python
+students_with_dup_ats.sort_values(["18_digit_id", "global_academic_term"]).to_csv(
+    "duplicate_at.csv"
+)
+```
+
+```python
+df_file_4_spring = df_file4[df_file4.global_academic_term.str.match("Spring*")]
+```
+
+```python
+len(df_file_4_spring)
+```
+
+```python
+df_file_4_spring = df_file_4_spring.drop_duplicates(
+    subset=["18_digit_id", "global_academic_term"]
+)
+```
+
+```python
+grade_pivot = df_file_4_spring.pivot(
+    index="18_digit_id", columns="grade_at", values="gpa_running_cumulative",
+)
+```
+
+```python
+df = df.merge(grade_pivot, on="18_digit_id", how="left")
+```
+
+```python
+df
+```
+
 ### Save output file into processed directory
 
 Save a file in the processed directory that is cleaned properly. It will be read in and used later for further analysis.
@@ -248,8 +287,4 @@ df.to_pickle(summary_file)
 df_file2.to_pickle(summary_file2)
 
 df_file3.to_pickle(summary_file3)
-```
-
-```python
-
 ```
