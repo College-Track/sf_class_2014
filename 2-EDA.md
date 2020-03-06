@@ -165,10 +165,10 @@ model = sm.OLS(y.astype(float), X.astype(float)).fit()
 predictions = model.predict(X)  # make the predictions by the model
 
 # Print out the statistics
-# model.summary()
+model.summary()
 
-fig, ax = plt.subplots()
-fig = sm.graphics.plot_fit(model, 0, ax=ax)
+# fig, ax = plt.subplots()
+# fig = sm.graphics.plot_fit(model, 0, ax=ax)
 
 ```
 
