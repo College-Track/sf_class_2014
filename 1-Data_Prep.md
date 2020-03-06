@@ -17,9 +17,10 @@ jupyter:
 A project to determine what, if anything influenced the graduation success of the San Francisco class of 2014.
 
 ### Data Sources
-- Student Data : https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxDwUAK/view
-- Scholarship Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxHKUA0/view
-- Test Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007R0eMUAS/view
+- File 1 - Student Data : https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxDwUAK/view
+- File 2 - Scholarship Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxHKUA0/view
+- File 3 - Test Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007R0eMUAS/view
+- File 4 - Academic Term Data: https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007R0JJUA0/view?queryScope=userFolders
 
 ### Changes
 - 02-06-2020 : Started project
@@ -54,12 +55,13 @@ today = datetime.today()
 in_file1 = Path.cwd() / "data" / "raw" / "sf_output_file1.csv"
 in_file2 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
 in_file3 = Path.cwd() / "data" / "raw" / "sf_output_file3.csv"
+in_file4 = Path.cwd() / "data" / "raw" / "sf_output_file4.csv"
+
 
 summary_file = Path.cwd() / "data" / "processed" / "processed_data.pkl"
-
 summary_file2 = Path.cwd() / "data" / "processed" / "processed_data_file2.pkl"
-
 summary_file3 = Path.cwd() / "data" / "processed" / "processed_data_file3.pkl"
+summary_file4 = Path.cwd() / "data" / "processed" / "processed_data_file4.pkl"
 ```
 
 ### Load Report From Salesforce
@@ -76,12 +78,18 @@ summary_file3 = Path.cwd() / "data" / "processed" / "processed_data_file3.pkl"
 
 
 # File 3
-report_id_file3 = "00O1M000007R0eMUAS"
-sf_df = helpers.load_report(report_id_file3, sf)
+# report_id_file3 = "00O1M000007R0eMUAS"
+# sf_df_file3 = helpers.load_report(report_id_file3, sf)
+
+# File 4
+report_id_file4 = "00O1M000007R0JJUA0"
+sf_df_file4 = helpers.load_report(report_id_file4, sf)
+
+
 ```
 
 ```python
-# len(sf_df)
+len(sf_df_file4)
 ```
 
 #### Save report as CSV
@@ -94,9 +102,11 @@ sf_df = helpers.load_report(report_id_file3, sf)
 # File 2
 # sf_df_file2.to_csv(in_file2, index=False)
 
-# File 3 
-sf_df.to_csv(in_file3, index=False)
+# File 3
+# sf_df_file3.to_csv(in_file3, index=False)
 
+# File 4
+sf_df_file4.to_csv(in_file4, index=False)
 ```
 
 ### Load DF from saved CSV
@@ -113,9 +123,15 @@ df_file2 = pd.read_csv(in_file2)
 
 # File 3
 df_file3 = pd.read_csv(in_file3)
+
+# File 4
+df_file4 = pd.read_csv(in_file4)
 ```
 
 ### Data Manipulation
+
+
+#### Functions for file cleaning
 
 ```python
 def create_gpa_bucket(gpa):
@@ -154,6 +170,8 @@ def clean_column_names(df):
 
 ```
 
+#### Cleaning applied to all files
+
 ```python
 # File 1
 df = helpers.shorten_site_names(df)
@@ -167,13 +185,25 @@ df_file2 = clean_column_names(df_file2)
 # File 3
 df_file3 = helpers.shorten_site_names(df_file3)
 df_file3 = clean_column_names(df_file3)
+
+# File 4
+df_file4 = helpers.shorten_site_names(df_file4)
+df_file4 = clean_column_names(df_file4)
 ```
+
+```python
+df_file4
+```
+
+#### File 1 Specific
 
 ```python
 df["gpa_bucket"] = df.apply(
     lambda x: create_gpa_bucket(x.college_elig_gpa_11th_cgpa), axis=1
 )
 ```
+
+#### Merging Data into File 1
 
 ```python
 entrance_scores =df_file3[
