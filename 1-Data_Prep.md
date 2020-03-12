@@ -30,7 +30,6 @@ A project to determine what, if anything influenced the graduation success of th
 # ALWAYS RUN
 %load_ext dotenv
 %dotenv
-%load_ext nb_black
 
 
 from salesforce_reporting import Connection, ReportParser
@@ -41,13 +40,17 @@ import helpers
 import os
 import re
 import numpy as np
+from reportforce import Reportforce
+
 
 
 SF_PASS = os.environ.get("SF_PASS")
 SF_TOKEN = os.environ.get("SF_TOKEN")
 SF_USERNAME = os.environ.get("SF_USERNAME")
 
-sf = Connection(username=SF_USERNAME, password=SF_PASS, security_token=SF_TOKEN)
+sf = Reportforce(username=SF_USERNAME, password=SF_PASS, security_token=SF_TOKEN)
+
+
 ```
 
 ### File Locations
@@ -91,14 +94,16 @@ report_id_file3 = "00O1M000007R0eMUAS"
 sf_df_file3 = helpers.load_report(report_id_file3, sf)
 
 # File 4
-report_id_file4 = "00O1M000007R0JJUA0"
-sf_df_file4 = helpers.load_report(report_id_file4, sf)
+# report_id_file4 = "00O1M000007R0JJUA0"
+# sf_df_file4 = helpers.load_report(report_id_file4, sf)
+
+
 
 
 ```
 
 ```python
-# len(sf_df_file4)
+len(sf_df),len(sf_df_file2),len(sf_df_file3)
 ```
 
 #### Save report as CSV
@@ -114,7 +119,7 @@ sf_df_file2.to_csv(in_file2, index=False)
 sf_df_file3.to_csv(in_file3, index=False)
 
 # File 4
-sf_df_file4.to_csv(in_file4, index=False)
+# sf_df_file4.to_csv(in_file4, index=False)
 ```
 
 ### Load DF from saved CSV
@@ -249,7 +254,7 @@ students_with_dup_ats.sort_values(["18_digit_id", "global_academic_term"]).to_cs
 ```
 
 ```python
-df_file_4_spring = df_file4[df_file4.global_academic_term.str.match("Spring*")]
+df_file_4_spring = df_file4[df_file4.global_academic_term.str.match('Spring*', na=False)]
 ```
 
 ```python
@@ -263,6 +268,10 @@ df_file_4_spring = df_file_4_spring.drop_duplicates(
 ```
 
 ```python
+df_file_4_spring = df_file_4_spring.drop_duplicates(subset=['18_digit_id', 'grade_at'])
+```
+
+```python
 grade_pivot = df_file_4_spring.pivot(
     index="18_digit_id", columns="grade_at", values="gpa_running_cumulative",
 )
@@ -273,7 +282,32 @@ df = df.merge(grade_pivot, on="18_digit_id", how="left")
 ```
 
 ```python
-df
+fit_type_merge = df_file_4_spring[df_file_4_spring['grade_at'] == 'Year 1']
+fit_type_merge = fit_type_merge[['18_digit_id', 'fit_type']]
+
+```
+
+```python
+df = df.merge(fit_type_merge, on="18_digit_id", how="left")
+```
+
+```python
+df_file_4_spring.academic_term_record_type.value_counts()
+```
+
+```python
+# Merging high school
+
+df_file_4_spring_high_school = df_file_4_spring[df_file_4_spring.academic_term_record_type == "High School Semester"]
+```
+
+```python
+df_file_4_spring_high_school = df_file_4_spring_high_school[['18_digit_id', 'school']]
+
+```
+
+```python
+df = df.merge(df_file_4_spring_high_school, on="18_digit_id", how="left")
 ```
 
 ### Save output file into processed directory
@@ -287,4 +321,8 @@ df.to_pickle(summary_file)
 df_file2.to_pickle(summary_file2)
 
 df_file3.to_pickle(summary_file3)
+```
+
+```python
+
 ```
