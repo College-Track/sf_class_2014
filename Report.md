@@ -338,9 +338,7 @@ mod.summary()
 
 ```
 
-```python
-
-%%html
+```html
 
 <style>
 div.prompt {display:none}
@@ -381,8 +379,4 @@ h3, .h3 {
 
 
 </style>
-```
-
-```python
-
 ```
