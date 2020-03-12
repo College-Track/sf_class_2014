@@ -334,6 +334,13 @@ mod.summary()
 ```
 
 ```html
+<script src="https://cdn.rawgit.com/parente/4c3e6936d0d7a46fd071/raw/65b816fb9bdd3c28b4ddf3af602bfd6015486383/code_toggle.js"></script>
+
+```
+
+```python
+
+%%html
 
 <style>
 div.prompt {display:none}
@@ -374,4 +381,8 @@ h3, .h3 {
 
 
 </style>
+```
+
+```python
+
 ```
