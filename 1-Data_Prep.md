@@ -81,21 +81,21 @@ summary_file4 = Path.cwd() / "data" / "processed" / "processed_data_file4.pkl"
 ```python
 # File 1
 report_id_file1 = "00O1M000007QxDwUAK"
-sf_df = helpers.load_report(report_id_file1, sf)
+sf_df = sf.get_report(report_id_file1, id_column='18 Digit ID')
 
 
 # File 2
 report_id_file2 = "00O1M000007QxHKUA0"
-sf_df_file2 = helpers.load_report(report_id_file2, sf)
+sf_df_file2 = sf.get_report(report_id_file2, id_column='Scholarship Transaction: ID')
 
 
 # File 3
 report_id_file3 = "00O1M000007R0eMUAS"
-sf_df_file3 = helpers.load_report(report_id_file3, sf)
+sf_df_file3 = sf.get_report(report_id_file3, id_column='Test: ID')
 
 # File 4
 # report_id_file4 = "00O1M000007R0JJUA0"
-# sf_df_file4 = helpers.load_report(report_id_file4, sf)
+# sf_df_file4 = sf.get_report(report_id_file4, id_column='Academic Term: ID')
 
 
 
@@ -292,7 +292,7 @@ df = df.merge(fit_type_merge, on="18_digit_id", how="left")
 ```
 
 ```python
-df_file_4_spring.academic_term_record_type.value_counts()
+(df['18_digit_id'].value_counts()).value_counts()
 ```
 
 ```python
@@ -302,12 +302,82 @@ df_file_4_spring_high_school = df_file_4_spring[df_file_4_spring.academic_term_r
 ```
 
 ```python
+df_file_4_spring_high_school = df_file_4_spring_high_school[df_file_4_spring_high_school.grade_at == "12th Grade"]
+```
+
+```python
+(df_file_4_spring_high_school['18_digit_id'].value_counts()).value_counts()
+```
+
+```python
 df_file_4_spring_high_school = df_file_4_spring_high_school[['18_digit_id', 'school']]
 
 ```
 
 ```python
 df = df.merge(df_file_4_spring_high_school, on="18_digit_id", how="left")
+```
+
+```python
+(df['18_digit_id'].value_counts()).value_counts()
+```
+
+```python
+# Determinig if a site was using site based advising
+
+def determine_site_based_advising(site, hs_class):
+    if hs_class >= 2013 and site == "San Francisco":
+        return True
+    elif hs_class >= 2014:
+        return True
+    else:
+        return False
+```
+
+```python
+df['received_site_based_advising'] = df.apply(
+    lambda x: determine_site_based_advising(x['site'], x['high_school_class']), axis=1)
+```
+
+```python
+# cleaning column names after all the merging
+df = clean_column_names(df)
+```
+
+```python
+df["9th_grade_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['9th_grade']), axis=1
+)
+
+df["10th_grade_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['10th_grade']), axis=1
+)
+
+df["11th_grade_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['11th_grade']), axis=1
+)
+
+df["12th_grade_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['12th_grade']), axis=1
+)
+
+df["year_1_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['year_1']), axis=1
+)
+
+df["year_2_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['year_2']), axis=1
+)
+
+
+df["year_3_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['year_3']), axis=1
+)
+
+
+df["year_4_gpa_bucket"] = df.apply(
+    lambda x: create_gpa_bucket(x['year_4']), axis=1
+)
 ```
 
 ### Save output file into processed directory
@@ -321,8 +391,4 @@ df.to_pickle(summary_file)
 df_file2.to_pickle(summary_file2)
 
 df_file3.to_pickle(summary_file3)
-```
-
-```python
-
 ```

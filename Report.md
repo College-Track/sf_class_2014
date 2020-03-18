@@ -80,6 +80,15 @@ df3 = pd.read_pickle(in_file3)
 ```
 
 ```python
+# original df file only included students who completed hs program. later removed that filter,
+#so changing df to be the original subset, and df_master to be the whole group
+
+df_master = df
+
+df = df[df.indicator_completed_ct_hs_program == True]
+```
+
+```python
 def sf_cross_tab(df, column, normalize="index", margins=True):
     return pd.crosstab(
         df[df.site == "San Francisco"].high_school_class,
@@ -89,12 +98,30 @@ def sf_cross_tab(df, column, normalize="index", margins=True):
     )
 ```
 
+```python
+def class_cross_tab(df, column, hs_class, normalize="index"):
+    return pd.crosstab(
+        df[df.high_school_class == hs_class].site,
+        df[df.high_school_class == hs_class][column],
+        normalize=normalize,
+        margins=True,
+    )
+```
+
+```python
+# creating a subset df that is just San Francisco
+df_sub = df[df.site == "San Francisco"].dropna(subset=['act_mathematics'])
+
+df_sub = df_sub[df_sub.high_school_class<=2014]
+```
+
+<!-- #region hide_input=true -->
 ##  General Distributions
 
 SF Class of 2014 is on track to have the highest 6 year grad rate, with almost 70% of students already graduating, but that number isn't significantly higher than the class of 2013. Though we do see a reasonably big jump from 2012 to 2013. 
 
 
-
+<!-- #endregion -->
 
 #### Table 1. San Francisco 6 Year Graduation Rate by High School Class 
 
@@ -131,7 +158,7 @@ grad_rate_5_year
 
 ### Statistical Test
 
-If we run an independent t-test on the 5 year graduation rates, we see that the class of 2014 is not statistically higher than the class of 2013, or 2012. 
+If we run an independent t-test on the 5 year graduation rates, we see that the class of 2014 is not statistically higher than the class of 2013, nor is the class of 2013 statistically higher than the class of 2012.
 
 
 #### P Value from t-test comparing 2014 -> 2013
@@ -153,10 +180,11 @@ population2_test_1 = (
 
 ```python
 # p value of independent t-test on populations above
-(round(sm.stats.ttest_ind(population1_test_1, population2_test_1)[1], 2))
+print("p Value: ", (round(sm.stats.ttest_ind(population1_test_1, population2_test_1)[1], 2)))
 ```
 
-#### P Value from t-test comparing 2014 -> 2012 
+#### P Value from t-test comparing 2013 -> 2012 
+
 
 ```python
 population1_test_2 = (
@@ -167,36 +195,14 @@ population1_test_2 = (
 
 
 population2_test_2 = (
-    df[(df.site == "San Francisco") & (df.high_school_class == 2014)][
+    df[(df.site == "San Francisco") & (df.high_school_class == 2013)][
         "graduated_4_year_degree_less_5_years"
     ]
 ).values
 ```
 
 ```python
-(round(sm.stats.ttest_ind(population1_test_2, population2_test_2)[1], 2))
-```
-
-#### P Value from t-test comparing 2014 -> 2011
-Note, this value is < 0.5
-
-```python
-population1_test_3 = (
-    df[(df.site == "San Francisco") & (df.high_school_class == 2011)][
-        "graduated_4_year_degree_less_5_years"
-    ]
-).values
-
-
-population2_test_3 = (
-    df[(df.site == "San Francisco") & (df.high_school_class == 2014)][
-        "graduated_4_year_degree_less_5_years"
-    ]
-).values
-```
-
-```python
-(round(sm.stats.ttest_ind(population1_test_3, population2_test_3)[1], 2))
+print(" p Value: ",(round(sm.stats.ttest_ind(population1_test_2, population2_test_2)[1], 2)))
 ```
 
 ### Other Distributions
@@ -208,14 +214,23 @@ With that in mind, here are other notable differences in the high school class d
 
 #### 11th Grade College Eligibility GPA
 
-This is the most notable distribution change, with the class of 2014 having by far the highest 11th grade GPAs, with almost 75% of that student group having over a 3.0. Compared to 53% from the class of 2013 (the next highest)
+This is the most notable distribution change, with the class of 2014 having by far the highest 11th grade GPAs, with almost 75% of that student group having over a 3.0. Compared to 54% from the class of 2013 (the next highest)
 
 ```python
-gpa_buckets = sf_cross_tab(df, "gpa_bucket", margins=False).round(2)
+gpa_buckets = sf_cross_tab(df, "11th_grade_gpa_bucket", margins=False ).round(2)
 
 
 
 gpa_buckets
+```
+
+```python
+pd.crosstab(
+        df.high_school_class,
+        df["11th_grade_gpa_bucket"],
+        normalize=False,
+        margins=True,
+    )
 ```
 
 #### CT Entrance Diagnostics Math Scores
@@ -257,12 +272,6 @@ df[['9th Grade', '10th Grade', '11th Grade',
     ['9th Grade', '10th Grade', '11th Grade',
      '12th Grade', 'Year 1', 'Year 2', 'Year 3',
      'Year 4', 'Year 5', 'Year 6']].apply(pd.to_numeric, errors='coerce')
-```
-
-```python
-# creating a subset df that is just San Francisco
-df_sub = df[df.site == "San Francisco"].dropna(subset=['act_mathematics'])
-
 ```
 
 ```python
@@ -328,19 +337,131 @@ mod = smf.logit(formula= "C1(graduated_4_year_degree_less_5_years) ~ C(fit_type)
 mod.summary()
 ```
 
+## SF Compared to Other Sites
+
+San Francisco piloted site based modeling for the class of 2013, and the rest of College Track transitioned to this model in for the class of 2014. 
+
+
+
+
+#### Class of 2013 graduation rate compared to other CT Sites
+
+This table shows the difference in graduation rate between SF class of 2013 and all other sites - that starting in 2013 were not using site based modeling (however starting in 2014 all sites were using this model).
+
+We can see that SF has a higher graduation rate, and the p value indicates this is a statistically significant difference. 
+
 ```python
-# np.exp(mod.params)
+class_cross_tab(df, "graduated_4_year_degree_less_6_years", hs_class=2013)
 
 ```
 
-```html
-<script src="https://cdn.rawgit.com/parente/4c3e6936d0d7a46fd071/raw/65b816fb9bdd3c28b4ddf3af602bfd6015486383/code_toggle.js"></script>
+```python
+population1_test_4 = (
+    df[(df.site == "San Francisco") & (df.high_school_class == 2013)][
+        "graduated_4_year_degree_less_6_years"
+    ]
+).values
 
+
+population2_test_4 = (
+    df[(df.site != "San Francisco") & (df.high_school_class == 2013)][
+        "graduated_4_year_degree_less_6_years"
+    ]
+).values
 ```
 
-```html
+```python
+print("p Value: ",(round(sm.stats.ttest_ind(population1_test_4, population2_test_4)[1], 5)))
+```
+
+#### Class of 2011 and 2012 graduation rate compared to other CT Sites
+
+When comparing the class of 2011 and 2012 though, at the time when no sites were using site based advising, it does appear SF also had a higher graduation rate, as the p value indicates as well. 
+
+```python
+pd.crosstab(
+        df[df.high_school_class <= 2012].site,
+        df[df.high_school_class <= 2012]['graduated_4_year_degree_less_6_years'],
+        normalize='index',
+        margins=True,
+    )
+```
+
+```python
+population1_test_5 = (
+    df[(df.site == "San Francisco") & (df.high_school_class <= 2012)][
+        "graduated_4_year_degree_less_6_years"
+    ]
+).values
+
+
+population2_test_5 = (
+    df[(df.site != "San Francisco") & (df.high_school_class <= 2012)][
+        "graduated_4_year_degree_less_6_years"
+    ]
+).values
+```
+
+```python
+print("p Value: ", (round(sm.stats.ttest_ind(population1_test_5, population2_test_5)[1], 2)))
+```
+
+#### Class of 2014 and 2015 graduation rate compared to other CT Sites
+
+Finally when looking at the class of 2014 and 2015, when all sites were using site based advising, San Francisco still appears to have a higher graduation rate.
+
+```python
+pd.crosstab(
+        df[df.high_school_class >= 2014].site,
+        df[df.high_school_class >= 2014]['graduated_4_year_degree_less_6_years'],
+        normalize='index',
+        margins=True,
+    )
+```
+
+```python
+population1_test_6 = (
+    df[(df.site == "San Francisco") & (df.high_school_class >= 2014)][
+        "graduated_4_year_degree_less_6_years"
+    ]
+).values
+
+
+population2_test_6 = (
+    df[(df.site != "San Francisco") & (df.high_school_class >= 2014)][
+        "graduated_4_year_degree_less_6_years"
+    ]
+).values
+```
+
+```python
+print('p Value: ',(round(sm.stats.ttest_ind(population1_test_6, population2_test_6)[1], 2)))
+```
+
+```python
+# mod = smf.logit(formula= "C1(graduated_4_year_degree_less_6_years) ~ C(received_site_based_advising) +  total_bb_earnings_as_of_hs_grad ", data=df).fit(method='bfgs', maxiter=100)
+# mod.summary()
+```
+
+```html hide_input=true
+
+<script>
+$(document).ready(function(){
+    window.code_toggle = function() {
+        (window.code_shown) ? $('div.input').hide(250) : $('div.input').show(250);
+        window.code_shown = !window.code_shown
+    }
+    if($('body.nbviewer').length) {
+        $('<li><a href="javascript:window.code_toggle()" title="Show/Hide Code"><span class="fa fa-code fa-2x menu-icon"></span><span class="menu-text">Show/Hide Code</span></a></li>').appendTo('.navbar-right');
+        window.code_shown=false;
+        $('div.input').hide();
+    }
+});
+</script>
+
 
 <style>
+
 div.prompt {display:none}
 
 
@@ -376,7 +497,14 @@ h3, .h3 {
   justify-content: center;
 }
 
+.cell {
+    padding: 0px;
+}
 
 
 </style>
+```
+
+```python
+
 ```

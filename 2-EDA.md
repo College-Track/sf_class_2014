@@ -34,7 +34,7 @@ import numpy as np
 
 ```python
 %matplotlib inline
-%load_ext nb_black
+
 ```
 
 ### File Locations
@@ -57,6 +57,19 @@ df = pd.read_pickle(in_file)
 df2 = pd.read_pickle(in_file2)
 
 df3 = pd.read_pickle(in_file3)
+```
+
+```python
+df.indicator_completed_ct_hs_program
+```
+
+```python
+# original df file only included students who completed hs program. later removed that filter,
+#so changing df to be the original subset, and df_master to be the whole group
+
+df_master = df
+
+df = df[df.indicator_completed_ct_hs_program == True]
 ```
 
 ### Perform Data Analysis
@@ -261,6 +274,78 @@ sf_cross_tab(entrace_scores, "act_math_readiness")
 
 ```python
 sf_cross_tab(entrace_scores, "act_english_readiness")
+```
+
+### SF Compared to Other Sites
+
+Looking at the class of 2013 compared to other sites
+
+```python
+def class_cross_tab(df, column, hs_class, normalize="index"):
+    return pd.crosstab(
+        df[df.high_school_class == hs_class].site,
+        df[df.high_school_class == hs_class][column],
+        normalize=normalize,
+        margins=True,
+    )
+```
+
+```python
+class_cross_tab(df, "graduated_4_year_degree_less_6_years", hs_class=2013)
+
+```
+
+```python
+class_cross_tab(df, "graduated_4_year_degree_less_6_years", hs_class=2012)
+
+```
+
+```python
+class_cross_tab(df, "graduated_4_year_degree_less_6_years", hs_class=2011)
+
+```
+
+```python
+df.columns
+```
+
+```python
+pd.crosstab(
+        df.received_site_based_advising,
+        df.graduated_4_year_degree_less_4_years,
+        normalize='index',
+        margins=True,
+    )
+```
+
+```python
+# comparing if the class of 2013 / 2014 had a higher percent of students who didn't complete hs program
+
+sf_cross_tab(df_master, "indicator_completed_ct_hs_program", normalize=False)
+
+```
+
+```python
+sf_cross_tab(df_master, "indicator_completed_ct_hs_program")
+```
+
+```python
+sf_cross_tab(df, "school")['Lowell High School']
+
+```
+
+```python
+df_lowel = df[df.school == 'Lowell High School']
+```
+
+```python
+sf_cross_tab(df_lowel, "graduated_4_year_degree_less_6_years", normalize=False)
+
+```
+
+```python
+sf_cross_tab(df, "graduated_4_year_degree_less_6_years", normalize=False)
+
 ```
 
 ### Save Excel file into reports directory
