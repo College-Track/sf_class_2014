@@ -110,7 +110,7 @@ def class_cross_tab(df, column, hs_class, normalize="index"):
 
 ```python
 # creating a subset df that is just San Francisco
-df_sub = df[df.site == "San Francisco"].dropna(subset=['act_mathematics'])
+df_sub = df[df.site == "San Francisco"]
 
 df_sub = df_sub[df_sub.high_school_class<=2014]
 ```
@@ -131,7 +131,7 @@ SF Class of 2014 is on track to have the highest 6 year grad rate, with almost 7
 grad_rate_6_year = sf_cross_tab(
     df, "graduated_4_year_degree_less_6_years").round(2)
 
-grad_rate_6_year
+grad_rate_6_year.round(2).style.format('{:.0%}')
 ```
 
 <!-- #region hide_input=true -->
@@ -152,7 +152,7 @@ To be more accurate, we can look at the 5 year grad rate, but this tells essenti
 ```python
 grad_rate_5_year = sf_cross_tab(df, "graduated_4_year_degree_less_5_years").round(2)
 
-grad_rate_5_year
+grad_rate_5_year.round(2).style.format('{:.0%}')
 
 ```
 
@@ -214,43 +214,21 @@ With that in mind, here are other notable differences in the high school class d
 
 #### 11th Grade College Eligibility GPA
 
-This is the most notable distribution change, with the class of 2014 having by far the highest 11th grade GPAs, with almost 75% of that student group having over a 3.0. Compared to 54% from the class of 2013 (the next highest)
+This is the most notable distribution change, with the class of 2014 and 2013 having higher GPAs than the previous classes. The class of 2014 had almost 75% of students with a GPA above 3.0, and the class of 2013 had 54% of student above 3.0. Compared to 45% for the class of 2012.
 
 ```python
 gpa_buckets = sf_cross_tab(df, "11th_grade_gpa_bucket", margins=False ).round(2)
 
 
 
-gpa_buckets
-```
-
-```python
-pd.crosstab(
-        df.high_school_class,
-        df["11th_grade_gpa_bucket"],
-        normalize=False,
-        margins=True,
-    )
-```
-
-#### CT Entrance Diagnostics Math Scores
-If we look at each high school classes incoming CT math diagnostics scores, we also see that the class of 2014 had the highest percent of students either "Ready" or "Near Ready." Noteworthy though, is the class of 2013 did not have any appreciable differences from the class of 2012. 
-
-```python
-entrace_scores = df3[df3.version == "Entrance into CT Diagnostic"]
-```
-
-```python
-entrance_scores = sf_cross_tab(entrace_scores, "act_math_readiness", margins=False).round(2)
-
-entrance_scores
+gpa_buckets.round(2).style.format('{:.0%}')
 ```
 
 #### Pearson Correlation Coefficient for key continuous data points (SF - all classes)
 
 Below is the correlation matrix for key continuous variables that might influence college graduation. For the purposes here, only the first column is displays relevant information. 
 
-We can see that GPA in general plays the largest factor, with 11th grade and the first year of college particularly important. Somewhat surprising, was the role bank book earnings played, second only to 11th grade gpa. 
+We can see that GPA in general plays the largest factor, with 11th grade and the first year of college particularly important. Bank book earnings played the had the second highest correlation to graduation success. 
 
 Note - there are no notable differences between the Pearson Coefficient and the Spearman Coefficient
 
@@ -266,18 +244,18 @@ df['total_bb_earnings_as_of_hs_grad'] = df['total_bb_earnings_as_of_hs_grad'].re
     '[\$,]', '', regex=True).astype(float)
 
 # changing gpa data to int
-df[['9th Grade', '10th Grade', '11th Grade',
-    '12th Grade', 'Year 1', 'Year 2', 'Year 3',
-    'Year 4', 'Year 5', 'Year 6']] = df[
-    ['9th Grade', '10th Grade', '11th Grade',
-     '12th Grade', 'Year 1', 'Year 2', 'Year 3',
-     'Year 4', 'Year 5', 'Year 6']].apply(pd.to_numeric, errors='coerce')
+df[['9th_grade', '10th_grade', '11th_grade',
+    '12th_grade', 'year_1', 'year_2', 'year_3',
+    'year_4', 'year_5', 'year_6']] = df[
+    ['9th_grade', '10th_grade', '11th_grade',
+    '12th_grade', 'year_1', 'year_2', 'year_3',
+    'year_4', 'year_5', 'year_6']].apply(pd.to_numeric, errors='coerce')
 ```
 
 ```python
-corrMatrix = df_sub[['graduated_4_year_degree_less_5_years', '9th Grade', '10th Grade',
-                     '11th Grade', '12th Grade', 'Year 1', 'Year 2', 'Year 3',
-                     'Year 4', 'Year 5', 'indicator_first_generation', 'indicator_low_income',
+corrMatrix = df_sub[['graduated_4_year_degree_less_5_years', '9th_grade', '10th_grade', '11th_grade',
+                     '12th_grade', 'year_1', 'year_2', 'year_3',
+                     'year_4', 'year_5', 'indicator_first_generation', 'indicator_low_income',
                      'total_bb_earnings_as_of_hs_grad', 'act_mathematics']].corr(method='pearson')
 ```
 
@@ -293,24 +271,29 @@ ax = sns.heatmap(corrMatrix, vmax=1, square=True, annot=True,  cmap="RdBu")
 <!-- #region -->
 #### Logistic Regression on Categorical Variables (All SF Classes)
 
+Based on the above correlations, it is important to evaluate if any categorical variables are also influencing graduation outcomes. Below are the logistic regression results for selected categorical variables with the notable continuous variables added to the model as well. 
+
 Below is the logistic regression result on the following key categorical variables: 
 
-* High School Attended
 
 * Ethnic Background
 
 * College Fit type (using the fit type of the first school attended)
 
+* First Generation 
+
+* High School Attended
 
 
-All three of these test yielded mixed results with no clear indicator of strong correlation.
+
+When performed on only San Francisco students, the results indicated that still only 11th Grade GPA and Year 1 GPA had a statistically significant influence on graduation success. None of the other categorical indicators were statistically significant. 
+
+
+*For the high school test, the continuous variables had to be removed for the results to converge due to the large number of schools students attended* 
+
+
 
 Only three high schools showed statistically significant values, Lowell, Balboa, and City Arts and Tech, with Lowell being the only one that had a positive influence on students. As a note, prior to this analysis I spoke with Miccaela Montague and she indicated this likely would be the case. 
-
-
-For ethnic background, only Asian Americans had a small p value, but the "R squared is still quite low and the overall sample size for any individual ethnicity is low. 
-
-Finally, fit type yielded minimal results with. The sample size for Best Fit schools was very small, with almost all the students being marked as attending a Good Fit school. 
 
 As a note, for all of these the sample size was quite low.
 
@@ -323,23 +306,41 @@ def C1(cat):
 ```
 
 ```python
-mod = smf.logit(formula= "C1(graduated_4_year_degree_less_5_years) ~ C(school)", data=df_sub).fit(method='bfgs', maxiter=100)
+mod = smf.logit(formula= "C1(graduated_4_year_degree_less_6_years) ~ year_1  + Q('11th_grade') + C(indicator_first_generation) + total_bb_earnings_as_of_hs_grad + (C(fit_type)-1) + C(ethnic_background)", data=df_sub).fit(method='bfgs', maxiter=100)
 mod.summary()
 ```
 
 ```python
-mod = smf.logit(formula= "C1(graduated_4_year_degree_less_5_years) ~ C(ethnic_background) - 1 ", data=df_sub).fit(method='bfgs', maxiter=100)
+mod = smf.logit(formula= "C1(graduated_4_year_degree_less_6_years) ~ C(school)", data=df_sub).fit(method='bfgs', maxiter=100)
 mod.summary()
 ```
 
+#### Logistic Regression performed on all sites and classes
+
+The first regression from above was performed again but using a much larger data set - all sites and classes - but the results were the same. Only Year 1 and 11th Grade GPA were significant. 
+
 ```python
-mod = smf.logit(formula= "C1(graduated_4_year_degree_less_5_years) ~ C(fit_type)-1", data=df_sub).fit(method='bfgs', maxiter=100)
+mod = smf.logit(formula= "C1(graduated_4_year_degree_less_6_years) ~ year_1  + Q('11th_grade') + C(indicator_first_generation) + total_bb_earnings_as_of_hs_grad + (C(fit_type)-1) + C(ethnic_background)", data=df).fit(method='bfgs', maxiter=1000)
 mod.summary()
+```
+
+### San Francisco High School Attrition
+
+Another possibility, is the classes of 2013 and 2014 has a lower percent of students who completed the High School program, which could mean only the most qualified students were included in our college graduation numbers. 
+
+The below table list the percent of students who started college track and then completed the high school program. We do see in 2013 a smaller number, 26% of students completed the program, but that number quickly returned to 36% for the class of 2014. 
+
+```python
+sf_cross_tab(df_master, "indicator_completed_ct_hs_program").round(2).style.format('{:.0%}')
 ```
 
 ## SF Compared to Other Sites
 
 San Francisco piloted site based modeling for the class of 2013, and the rest of College Track transitioned to this model in for the class of 2014. 
+
+This is a harder metric to evaluate given that starting in 2014 all sites received site based advising, so San Francisco only has one year of only their students receiving site advising - a difficult length of time to pin down. Moreover, as we move back in time data becomes more limited or inaccurate, which makes comparing sites graduation rates prior to any advising harder to do. 
+
+Still, from this limited analysis it does appear there *could* be a correlation with San Francisco's switch to site based advising. 
 
 
 
@@ -351,7 +352,7 @@ This table shows the difference in graduation rate between SF class of 2013 and 
 We can see that SF has a higher graduation rate, and the p value indicates this is a statistically significant difference. 
 
 ```python
-class_cross_tab(df, "graduated_4_year_degree_less_6_years", hs_class=2013)
+class_cross_tab(df, "graduated_4_year_degree_less_6_years", hs_class=2013).round(2).style.format('{:.0%}')
 
 ```
 
@@ -376,7 +377,7 @@ print("p Value: ",(round(sm.stats.ttest_ind(population1_test_4, population2_test
 
 #### Class of 2011 and 2012 graduation rate compared to other CT Sites
 
-When comparing the class of 2011 and 2012 though, at the time when no sites were using site based advising, it does appear SF also had a higher graduation rate, as the p value indicates as well. 
+When comparing the class of 2011 and 2012 though, at the time when no sites were using site based advising, San Francisco did not have a statistically higher graduation rate. 
 
 ```python
 pd.crosstab(
@@ -384,7 +385,7 @@ pd.crosstab(
         df[df.high_school_class <= 2012]['graduated_4_year_degree_less_6_years'],
         normalize='index',
         margins=True,
-    )
+    ).round(2).style.format('{:.0%}')
 ```
 
 ```python
@@ -416,7 +417,7 @@ pd.crosstab(
         df[df.high_school_class >= 2014]['graduated_4_year_degree_less_6_years'],
         normalize='index',
         margins=True,
-    )
+    ).round(2).style.format('{:.0%}')
 ```
 
 ```python
@@ -436,11 +437,6 @@ population2_test_6 = (
 
 ```python
 print('p Value: ',(round(sm.stats.ttest_ind(population1_test_6, population2_test_6)[1], 2)))
-```
-
-```python
-# mod = smf.logit(formula= "C1(graduated_4_year_degree_less_6_years) ~ C(received_site_based_advising) +  total_bb_earnings_as_of_hs_grad ", data=df).fit(method='bfgs', maxiter=100)
-# mod.summary()
 ```
 
 ```html hide_input=true
