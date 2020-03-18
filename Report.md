@@ -22,7 +22,7 @@ The SF Class of 2014 is currently the highest performing CT class in terms of 5 
 
 While it is true the Class of 2014 will have the highest graduation rate, almost more notable is the jump in graduation rates from 2012 to 2013. In some senses, the class of 2014 was just continuing the impressive results their seniors started. However, given the small sample sizes for any given College Track cohort, it is difficult to draw conclusions on the statistical significance of these increases. In fact, looking at the t-test results indicated that the difference in graduation rates could not be considered pure randomness. 
 
-That being said, it still is important to understand if any factors seemed different among these students that might have had a correlation with graduation rates. When considering the data available, 11th grade GPA, first year of College GPA, and, more interesting, students total bank book earnings, seemed to play an important role in graduation success. 
+That being said, it still is important to understand if any factors seemed different among these students that might have had a correlation with graduation rates. When considering the data available, 11th grade GPA and first year of College GPA seemed to play the most important role in graduation success.  
 
 Other factors considered, but yield mixed or negligible results include: 
 * First Gen Status
@@ -31,10 +31,11 @@ Other factors considered, but yield mixed or negligible results include:
 * ACT scores
 * High School Attended* 
 * College Fit Type
+* High School Attrition
 
 \* For high school attended, there was a positive correlation with students who attended Lowell High School
 
-Finally, the switch to site based advising occurred around this time...TO BE COMPLETED
+Finally, the switch to site based advising occurred around this time. This is a harder indicator to effectively measure, but the results did indicate there *could* be something to this, but it is currently too difficult to pin down the extent of the significance. 
 
 
 
