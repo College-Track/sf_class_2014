@@ -17,7 +17,7 @@ jupyter:
 A project to determine what, if anything influenced the graduation success of the San Francisco class of 2014.
 
 ### Data Sources
-- File 1 - Student Data : https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxDwUAK/view
+- File 1 - Student Data : https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M0000077ZUQUA2/view
 - File 2 - Scholarship Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007QxHKUA0/view
 - File 3 - Test Data:  https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007R0eMUAS/view
 - File 4 - Academic Term Data: https://ctgraduates.lightning.force.com/lightning/r/Report/00O1M000007R0JJUA0/view?queryScope=userFolders
@@ -80,7 +80,7 @@ summary_file4 = Path.cwd() / "data" / "processed" / "processed_data_file4.pkl"
 
 ```python
 # File 1
-report_id_file1 = "00O1M000007QxDwUAK"
+report_id_file1 = "00O1M0000077ZUQUA2"
 sf_df = sf.get_report(report_id_file1, id_column='18 Digit ID')
 
 
@@ -213,6 +213,9 @@ df["gpa_bucket"] = df.apply(
 
 #### Merging Data into File 1
 
+
+##### Entrance Scores
+
 ```python
 entrance_scores =df_file3[
     (df_file3.site == "San Francisco")
@@ -240,6 +243,9 @@ entrance_merge = entrace_scores[
 ```python
 df = df.merge(entrance_merge, on="18_digit_id", how="left")
 ```
+
+##### GPAs
+
 
 ```python
 students_with_dup_ats = df_file4[
@@ -281,6 +287,9 @@ grade_pivot = df_file_4_spring.pivot(
 df = df.merge(grade_pivot, on="18_digit_id", how="left")
 ```
 
+##### Fit Type
+
+
 ```python
 fit_type_merge = df_file_4_spring[df_file_4_spring['grade_at'] == 'Year 1']
 fit_type_merge = fit_type_merge[['18_digit_id', 'fit_type']]
@@ -291,9 +300,8 @@ fit_type_merge = fit_type_merge[['18_digit_id', 'fit_type']]
 df = df.merge(fit_type_merge, on="18_digit_id", how="left")
 ```
 
-```python
-(df['18_digit_id'].value_counts()).value_counts()
-```
+##### High School Attended
+
 
 ```python
 # Merging high school
@@ -321,6 +329,9 @@ df = df.merge(df_file_4_spring_high_school, on="18_digit_id", how="left")
 ```python
 (df['18_digit_id'].value_counts()).value_counts()
 ```
+
+#### Remaining Modifications
+
 
 ```python
 # Determinig if a site was using site based advising
@@ -378,6 +389,11 @@ df["year_3_gpa_bucket"] = df.apply(
 df["year_4_gpa_bucket"] = df.apply(
     lambda x: create_gpa_bucket(x['year_4']), axis=1
 )
+```
+
+```python
+df.rename(columns = {'original_incoming_cohort?':'original_incoming_cohort'}, inplace = True) 
+
 ```
 
 ### Save output file into processed directory

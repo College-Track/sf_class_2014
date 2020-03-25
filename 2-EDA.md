@@ -60,16 +60,20 @@ df3 = pd.read_pickle(in_file3)
 ```
 
 ```python
-df.indicator_completed_ct_hs_program
-```
-
-```python
 # original df file only included students who completed hs program. later removed that filter,
 #so changing df to be the original subset, and df_master to be the whole group
 
 df_master = df
 
 df = df[df.indicator_completed_ct_hs_program == True]
+```
+
+```python
+
+```
+
+```python
+sf_cross_tab(df, "original_incoming_cohort?")
 ```
 
 ### Perform Data Analysis
