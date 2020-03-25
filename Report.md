@@ -32,6 +32,7 @@ Other factors considered, but yield mixed or negligible results include:
 * High School Attended* 
 * College Fit Type
 * High School Attrition
+* High School Retention
 
 \* For high school attended, there was a positive correlation with students who attended Lowell High School
 
@@ -257,7 +258,7 @@ df[['9th_grade', '10th_grade', '11th_grade',
 corrMatrix = df_sub[['graduated_4_year_degree_less_5_years', '9th_grade', '10th_grade', '11th_grade',
                      '12th_grade', 'year_1', 'year_2', 'year_3',
                      'year_4', 'year_5', 'indicator_first_generation', 'indicator_low_income',
-                     'total_bb_earnings_as_of_hs_grad', 'act_mathematics']].corr(method='pearson')
+                     'total_bb_earnings_as_of_hs_grad', 'act_mathematics', 'original_incoming_cohort?']].corr(method='pearson')
 ```
 
 ```python
@@ -321,7 +322,7 @@ mod.summary()
 The first regression from above was performed again but using a much larger data set - all sites and classes - but the results were the same. Only Year 1 and 11th Grade GPA were significant. 
 
 ```python
-mod = smf.logit(formula= "C1(graduated_4_year_degree_less_6_years) ~ year_1  + Q('11th_grade') + C(indicator_first_generation) + total_bb_earnings_as_of_hs_grad + (C(fit_type)-1) + C(ethnic_background)", data=df).fit(method='bfgs', maxiter=1000)
+mod = smf.logit(formula= "C1(graduated_4_year_degree_less_6_years) ~ year_1  + Q('11th_grade') + C(indicator_first_generation) + total_bb_earnings_as_of_hs_grad + (C(fit_type)-1) + C(original_incoming_cohort)", data=df).fit(method='bfgs', maxiter=1000)
 mod.summary()
 ```
 
@@ -333,6 +334,16 @@ The below table list the percent of students who started college track and then 
 
 ```python
 sf_cross_tab(df_master, "indicator_completed_ct_hs_program").round(2).style.format('{:.0%}')
+```
+
+### San Francisco High School Retention
+
+Finally, we considered if the class of 2013 and 2014 had a higher percentage of backfill students, which could be an indication that higher performing students were later recruited. 
+
+Below list the % of students who completed the HS program who were part of the original incoming cohort. We can see that the class of 2013 and 2014 had a slightly higher percentages of students who were part of the original cohort, but still a lower percentage than the class of 2011. Thus is seems unlikely that this was a strong influence. 
+
+```python
+sf_cross_tab(df, "original_incoming_cohort?").round(2).style.format('{:.0%}')
 ```
 
 ## SF Compared to Other Sites
